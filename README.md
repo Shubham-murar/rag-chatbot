@@ -139,8 +139,4 @@ Demo includes:
 🌐 [LinkedIn](https://www.linkedin.com/in/your-profile/) | [GitHub](https://github.com/your-username)
 
 ---
-
-```
-
----
 ```
