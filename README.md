@@ -1,20 +1,21 @@
 
 
 ```markdown
-# 🧠 Retrieval-Augmented Generation (RAG) Chatbot with Qdrant & LangChain
+# 🧠 Retrieval-Augmented Generation (RAG) Chatbot with Qdrant & Groq LLM
 
-This project showcases an intelligent chatbot built using the RAG architecture, combining powerful retrieval mechanisms with generative language models. The implementation leverages Qdrant for vector storage, HuggingFace Transformers for embeddings, and LangChain for pipeline orchestration.
+This project demonstrates a powerful RAG chatbot combining advanced document retrieval with generative language models. It uses Qdrant for vector storage, SentenceTransformers for embeddings, and Groq's `llama-3.1-8b-instant` model for response generation. The project includes semantic evaluation to assess answer quality.
 
 ---
 
 ## 🚀 Project Overview
 
-RAG enhances the capabilities of language models by retrieving relevant information from an external knowledge base and incorporating it into the generated response. This project demonstrates how to:
+RAG enhances language model responses by retrieving relevant knowledge chunks from a vector database and conditioning generation on that information. This implementation shows how to:
 
-- Chunk and embed documents.
-- Store and retrieve embeddings using Qdrant.
-- Generate context-aware answers via LangChain's retrieval chain.
-- Evaluate the quality of responses using a keyword-matching script.
+- Chunk documents for efficient retrieval.
+- Embed text using `all-MiniLM-L6-v2` SentenceTransformer.
+- Store and search embeddings in Qdrant vector database.
+- Generate context-aware answers via Groq's LLM API.
+- Evaluate answers semantically using SentenceTransformer embeddings and cosine similarity.
 
 ---
 
@@ -23,13 +24,13 @@ RAG enhances the capabilities of language models by retrieving relevant informat
 ```
 
 .
-├── main\_rag\_bot.py             # RAG chatbot core pipeline
-├── evaluate\_bot.py             # Automated evaluation script
-├── documents/                  # Source knowledge documents
+├── main\_rag\_bot.py              # Core RAG chatbot pipeline
+├── evaluator.py                 # Semantic evaluation script
+├── documents/                  # Source knowledge files (txt, pdf)
 ├── .env                        # Environment variables
 ├── requirements.txt            # Python dependencies
 ├── README.md                   # This file
-├── evaluation\_results.json     # Output from the evaluation script
+├── evaluation\_results\_semantic.json # Semantic evaluation output
 
 ````
 
@@ -37,12 +38,13 @@ RAG enhances the capabilities of language models by retrieving relevant informat
 
 ## 🧱 Core Technologies & Configurations
 
-| Component           | Description                                                   |
-|---------------------|---------------------------------------------------------------|
-| **Chunking Method** | Fixed-length token chunking with overlap for better context   |
-| **Embedding Model** | `sentence-transformers/all-MiniLM-L6-v2`                      |
-| **Vector Database** | Qdrant Cloud                                                  |
-| **Orchestration**   | LangChain                                                     |
+| Component            | Description                                         |
+|----------------------|-----------------------------------------------------|
+| **Chunking Method**  | Fixed-length overlapping chunks for context window  |
+| **Embedding Model**  | `sentence-transformers/all-MiniLM-L6-v2`             |
+| **Vector Database**  | Qdrant Cloud                                        |
+| **LLM Model**        | Groq `llama-3.1-8b-instant`                         |
+| **Evaluation**       | Semantic similarity scoring using SentenceTransformer embeddings and cosine similarity |
 
 ---
 
@@ -50,7 +52,7 @@ RAG enhances the capabilities of language models by retrieving relevant informat
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/your-username/rag-chatbot.git
+   git clone https://github.com/Shubham-murar/rag-chatbot.git
    cd rag-chatbot
 ````
 
@@ -62,7 +64,7 @@ RAG enhances the capabilities of language models by retrieving relevant informat
 
 3. **Set Up Environment Variables**
 
-   Create a `.env` file in the root directory:
+   Create a `.env` file in the root directory with the following keys:
 
    ```
    QDRANT_URL=https://your-qdrant-url.com
@@ -71,13 +73,13 @@ RAG enhances the capabilities of language models by retrieving relevant informat
    GROQ_API_KEY=your-groq-api-key
    ```
 
-4. **Prepare Your Documents**
+4. **Add Your Documents**
 
-   Add your source `.txt` or `.pdf` files into the `documents/` folder. These will be chunked, embedded, and stored in Qdrant.
+   Place your `.txt` or `.pdf` knowledge files inside the `documents/` folder. These will be chunked, embedded, and uploaded to Qdrant.
 
-5. **Run the Bot**
+5. **Run the Chatbot**
 
-   Start the RAG pipeline:
+   Launch the RAG chatbot pipeline:
 
    ```bash
    python main_rag_bot.py
@@ -85,49 +87,48 @@ RAG enhances the capabilities of language models by retrieving relevant informat
 
 ---
 
-## 🧪 Evaluation
+## 🧪 Semantic Evaluation
 
-To measure the bot’s accuracy and keyword coverage, run:
+Evaluate the chatbot’s answer quality using semantic similarity against reference summaries:
 
 ```bash
-python evaluate_bot.py
+python evaluator.py
 ```
 
-This script outputs:
+This script computes cosine similarity between embeddings of chatbot answers and reference summaries, providing:
 
-* Keyword match score per question
-* A final average score out of 5.0
-* JSON results in `evaluation_results.json`
+* Semantic scores scaled to 0-5 per question
+* Average semantic score across all questions
+* Saves detailed results in `evaluation_results_semantic.json`
 
-Example Output:
+Example output:
 
 ```
-🎯 Final Score: 4.70 / 5.0
-📄 Evaluation results saved to evaluation_results.json
+🎯 Final Semantic Score: 4.65 / 5.0
+📄 Evaluation results saved to evaluation_results_semantic.json
 ```
 
 ---
 
 ## 📹 Project Demo Video
 
-🎬 **Watch Demo**: [YouTube Demo Video](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
+🎬 **Watch Demo:** [YouTube Demo Video](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
 
-The demo includes:
+Demo includes:
 
-* Document upload and embedding
-* Chatbot interaction via RAG
-* Evaluation with metrics
-* Optional: Arize AI integration for deeper evaluation insights
+* Document chunking and embedding
+* Qdrant vector search
+* Chatbot interaction with Groq LLM
+* Semantic evaluation and scoring
+* Optional Arize AI integration for advanced analysis
 
 ---
 
 ## ✅ Contribution Guidelines
 
-* Ensure your code is original and well-documented.
-* Avoid plagiarism—explain your design choices clearly.
-* Pull requests should be accompanied by relevant test cases.
-
----
+* Ensure all code is original and clearly documented.
+* Explain your design choices, especially around chunking and evaluation.
+* Include relevant test cases with pull requests.
 
 ---
 
@@ -135,9 +136,11 @@ The demo includes:
 
 **Shubham Ashok Murar**
 📧 [shubhammurar3322@gmail.com](mailto:shubhammurar3322@gmail.com)
-📍 Nagpur, India
 🌐 [LinkedIn](https://www.linkedin.com/in/your-profile/) | [GitHub](https://github.com/your-username)
 
 ---
 
+```
+
+---
 ```
