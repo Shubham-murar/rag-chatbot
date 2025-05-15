@@ -149,12 +149,3 @@ This project is open-source under the [MIT License](LICENSE).
 ```
 
 ---
-
-### ✅ Final Notes
-
-- Replace `your-username`, `your-profile`, and YouTube link placeholders with your actual info.
-- Include a thumbnail or preview GIF in your repo for better presentation.
-- If you integrate Arize AI, you can expand the evaluation section with screenshots or API snippets.
-
-Would you like help generating a thumbnail or creating the video script for the demo?
-```
