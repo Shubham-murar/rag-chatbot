@@ -136,5 +136,5 @@ Demo includes:
 
 **Shubham Ashok Murar**
 📧 [shubhammurar3322@gmail.com](mailto:shubhammurar3322@gmail.com)
-🌐 [LinkedIn](www.linkedin.com/in/shubham-murar) | [GitHub](https://github.com/Shubham-murar/rag-chatbot)
+🌐 [LinkedIn](www.linkedin.com/in/shubham-murar/) | [GitHub](https://github.com/Shubham-murar/rag-chatbot)
 
