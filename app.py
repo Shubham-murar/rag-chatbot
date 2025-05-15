@@ -19,10 +19,9 @@ nest_asyncio.apply()
 # 🔐 Load environment variables
 load_dotenv()
 
-# 🔗 Qdrant + Groq Config from .env
+# 🔗 Qdrant Config from .env
 qdrant_url = os.getenv("QDRANT_URL")
 qdrant_api_key = os.getenv("QDRANT_API_KEY")
-groq_api_key = os.getenv("GROQ_API_KEY")
 collection_name = os.getenv("QDRANT_COLLECTION_NAME")
 
 # 🎨 Streamlit UI setup
@@ -50,7 +49,8 @@ def load_vectorstore():
 # 🔁 Load QA chain once
 if "qa_chain" not in st.session_state:
     vectorstore = load_vectorstore()
-    st.session_state.qa_chain = setup_retrieval_chain(vectorstore, groq_api_key)
+    # FIX: Only pass vectorstore, do NOT pass groq_api_key here
+    st.session_state.qa_chain = setup_retrieval_chain(vectorstore)
 
 # 💬 Show chat history
 if "messages" not in st.session_state:
