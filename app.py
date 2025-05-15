@@ -1,44 +1,93 @@
+import os
+import asyncio
+import nest_asyncio
 import streamlit as st
-from chatbot import get_answer, log_to_arize
-from qdrant_client import QdrantClient
-from langchain_community.vectorstores import Qdrant as LCQdrant
+from dotenv import load_dotenv
+from main_rag_bot import setup_retrieval_chain
+from langchain_community.vectorstores import Qdrant
 from langchain_community.embeddings import HuggingFaceEmbeddings
+from qdrant_client import QdrantClient
 
-# 🔹 Initialize Streamlit App
-st.set_page_config(page_title="AI Clone Chatbot", layout="wide")
-st.title("🤖 AI Clone Chatbot")
+# 🧠 Fix event loop for Streamlit + asyncio
+try:
+    loop = asyncio.get_event_loop()
+except RuntimeError:
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+nest_asyncio.apply()
 
-# 🔹 Initialize Qdrant Client (Persistent Storage)
-collection_name = "ai_clone"
-client = QdrantClient(path="qdrant_db", force_disable_lock=True)  # ✅ Opens Qdrant in read-only mode
+# 🔐 Load environment variables
+load_dotenv()
 
-# 🔹 Initialize Retriever
-hf_embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-retriever = LCQdrant(client, collection_name, hf_embeddings.embed_query).as_retriever(search_kwargs={"k": 3})
+# 🔗 Qdrant + Groq Config from .env
+qdrant_url = os.getenv("QDRANT_URL")
+qdrant_api_key = os.getenv("QDRANT_API_KEY")
+groq_api_key = os.getenv("GROQ_API_KEY")
+collection_name = os.getenv("QDRANT_COLLECTION_NAME")
 
-# 🔹 User Input
-user_input = st.text_input("Ask me anything about AI:")
+# 🎨 Streamlit UI setup
+st.set_page_config(page_title="RAG Chatbot", layout="wide")
+st.title("🧠 RAG-Powered Chatbot (Preprocessed Docs)")
 
-if user_input:
-    response = get_answer(user_input)
+# ⚡ Load existing Qdrant vectorstore
+@st.cache_resource
+def load_vectorstore():
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-    # 🔹 Show chatbot response
-    st.subheader("🤖 AI Response:")
-    st.write(response)
+    # Create Qdrant client
+    client = QdrantClient(
+        url=qdrant_url,
+        api_key=qdrant_api_key,
+    )
 
-    # 🔹 Show retrieved knowledge sources
-    with st.sidebar:
-        st.subheader("🔍 Retrieved Sources")
-        docs = retriever.invoke(user_input)
-        for doc in docs:
-            st.write(f"- {doc.page_content[:200]}...")  # Show snippet
+    # Return LangChain vector store
+    return Qdrant(
+        client=client,
+        collection_name=collection_name,
+        embeddings=embeddings,
+    )
 
-    # 🔹 User Feedback for Logging
-    feedback = st.radio("Was this answer helpful?", ("👍 Yes", "👎 No"))
+# 🔁 Load QA chain once
+if "qa_chain" not in st.session_state:
+    vectorstore = load_vectorstore()
+    st.session_state.qa_chain = setup_retrieval_chain(vectorstore, groq_api_key)
 
-    # Logging Feedback to Arize
-    actual_label = response if feedback == "👍 Yes" else "INCORRECT"
-    log_to_arize(user_input, response, actual_label)
+# 💬 Show chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-    st.success("✅ Your feedback has been recorded!")
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+        if message.get("sources"):
+            with st.expander("📚 View Sources"):
+                for doc in message["sources"]:
+                    st.markdown(f"- {doc.page_content[:300]}...")
 
+# ✍️ User prompt
+if prompt := st.chat_input("Ask a question about your documents"):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant"):
+        try:
+            response = st.session_state.qa_chain.invoke(prompt)
+            st.markdown(response['result'])
+
+            if response.get("source_documents"):
+                with st.expander("📚 View Sources"):
+                    for doc in response['source_documents']:
+                        st.markdown(f"- {doc.page_content[:300]}...")
+
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": response['result'],
+                "sources": response.get("source_documents", [])
+            })
+        except Exception as e:
+            st.error(f"❌ Error: {str(e)}")
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": "Sorry, I encountered an error while answering your query."
+            })

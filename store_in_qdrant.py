@@ -1,56 +1,47 @@
+# store_in_qdrant.py
 import os
+import uuid
 from qdrant_client import QdrantClient
-from qdrant_client.models import PointStruct, VectorParams, Distance
-from langchain_community.embeddings import HuggingFaceEmbeddings  # ✅ Fixed Import
-from langchain_community.document_loaders import TextLoader  # ✅ Fixed Import
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from qdrant_client.http.models import VectorParams, Distance
+from langchain.schema import Document
+from langchain.embeddings import HuggingFaceEmbeddings
 
-# Load extracted knowledge base
-TEXT_FILE_PATH = r"C:\Users\ACER\OneDrive\Desktop\AI_Clone\docs\knowledge_base.txt"
+class KnowledgeBaseManager:
+    def __init__(self, collection_name: str = "ai_clone", chunk_size: int = 1000, chunk_overlap: int = 200):
+        self.collection_name = collection_name
+        self.chunk_size = chunk_size
+        self.chunk_overlap = chunk_overlap
+        self.client = QdrantClient(
+            url=os.getenv("QDRANT_URL"),
+            api_key=os.getenv("QDRANT_API_KEY")
+        )
+        self._ensure_collection_exists()
+        self.embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-# Initialize Qdrant Client
-client = QdrantClient(path="qdrant_db")  # ✅ FIXED: Uses persistent storage
+    def _ensure_collection_exists(self):
+        existing = [c.name for c in self.client.get_collections().collections]
+        if self.collection_name not in existing:
+            self.client.create_collection(
+                collection_name=self.collection_name,
+                vectors_config=VectorParams(size=384, distance=Distance.COSINE)
+            )
 
-
-# Collection name
-collection_name = "ai_clone"
-
-# Create collection if not exists
-if not client.collection_exists(collection_name):
-    client.create_collection(
-        collection_name=collection_name,
-        vectors_config=VectorParams(size=384, distance=Distance.COSINE)
-    )
-
-# Load text from file
-loader = TextLoader(TEXT_FILE_PATH, encoding="utf-8")
-documents = loader.load()
-
-# Split text into chunks
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=512, chunk_overlap=100)
-chunks = text_splitter.split_documents(documents)
-
-# Initialize Embeddings
-hf_embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-
-# Store chunks in Qdrant
-for i, chunk in enumerate(chunks):
-    vector = hf_embeddings.embed_query(chunk.page_content)
-    client.upsert(
-        collection_name=collection_name,
-        points=[PointStruct(id=i, vector=vector, payload={"page_content": chunk.page_content})]
-    )
-
-print(f"✅ {len(chunks)} AI knowledge chunks stored in Qdrant!")
-
-# 🔹 Debugging: Check if data was stored
-# 🔍 Check if data exists in Qdrant before running chatbot
-retrieved_points = client.scroll(collection_name=collection_name, limit=3)[0]
-
-if retrieved_points:
-    print("\n✅ Data Exists in Qdrant! Here are some stored chunks:")
-    for point in retrieved_points:
-        print(f"- {point.payload.get('page_content', 'No content found')[:200]}...\n")
-else:
-    print("\n❌ No data found in Qdrant! Retrieval will fail.")
-
+    def store_text_file(self, file_path: str, chunks: list[Document]):
+        from qdrant_client.http.models import PointStruct
+        points = []
+        for i, doc in enumerate(chunks):
+            emb = self.embeddings.embed_query(doc.page_content)
+            points.append(PointStruct(
+                id=str(uuid.uuid4()),
+                vector=emb,
+                payload={
+                    "page_content": doc.page_content,
+                    "source": file_path,
+                    "chunk_index": i
+                }
+            ))
+        self.client.upsert(
+            collection_name=self.collection_name,
+            points=points
+        )
+        return points

@@ -1,0 +1,32 @@
+# Core LangChain dependencies
+langchain>=0.1.14
+langchain-community>=0.0.34
+langchain-core>=0.1.40
+langchain-huggingface
+langchain-groq
+numpy
+
+# Vector database client
+qdrant-client>=1.7.3
+
+# Embeddings
+sentence-transformers
+
+# PDF, OCR, and document handling
+PyMuPDF  # for fitz
+pytesseract
+Pillow
+python-docx
+beautifulsoup4
+requests
+
+# Deployment (optional, for UI)
+streamlit
+
+# PDF parsing for non-text PDFs (OCR)
+pdf2image  # may require poppler for Windows
+
+# Logging and utility
+tqdm
+langchain-qdrant
+langchain-huggingface
