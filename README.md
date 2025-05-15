@@ -1,6 +1,4 @@
-Here's a comprehensive and professional `README.md` template tailored for your Retrieval-Augmented Generation (RAG) project, following the given GitHub upload requirements:
 
----
 
 ```markdown
 # 🧠 Retrieval-Augmented Generation (RAG) Chatbot with Qdrant & LangChain
@@ -147,5 +145,3 @@ This project is open-source under the [MIT License](LICENSE).
 ---
 
 ```
-
----
