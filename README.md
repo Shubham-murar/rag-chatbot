@@ -112,7 +112,7 @@ Example output:
 
 ## 📹 Project Demo Video
 
-🎬 **Watch Demo:** [YouTube Demo Video](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
+🎬 **Watch Demo:** [YouTube Demo Video](https://youtu.be/rhpk6ASrcmc)
 
 Demo includes:
 
@@ -136,7 +136,7 @@ Demo includes:
 
 **Shubham Ashok Murar**
 📧 [shubhammurar3322@gmail.com](mailto:shubhammurar3322@gmail.com)
-🌐 [LinkedIn](https://www.linkedin.com/in/your-profile/) | [GitHub](https://github.com/your-username)
+🌐 [LinkedIn](www.linkedin.com/in/shubham-murar) | [GitHub](https://github.com/Shubham-murar/rag-chatbot)
 
 ---
 ```
