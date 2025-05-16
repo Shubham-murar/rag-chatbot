@@ -24,8 +24,8 @@ RAG enhances language model responses by retrieving relevant knowledge chunks fr
 ```
 
 .
-├── main\_rag\_bot.py              # Core RAG chatbot pipeline
-├── evaluator.py                 # Semantic evaluation script
+├── main\_rag\_bot.py           # Core RAG chatbot pipeline
+├── evaluator.py                # Semantic evaluation script
 ├── documents/                  # Source knowledge files (txt, pdf)
 ├── .env                        # Environment variables
 ├── requirements.txt            # Python dependencies
